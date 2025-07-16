@@ -1,0 +1,30 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "cdk",
+    "deploy": "cdk deploy",
+    "synth": "cdk synth"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@aws-cdk/aws-appsync-alpha": "^2.59.0-alpha.0",
+    "aws-cdk-lib": "^2.80.0",
+    "aws-sdk": "^2.1399.0",
+    "constructs": "^10.2.68",
+    "typescript": "^5.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.2.5",
+    "aws-cdk": "^2.80.0"
+  }
+}
