@@ -1,0 +1,79 @@
+"""
+Custom scalar type for JSON data in AWS AppSync
+"""
+scalar AWSJSON
+
+"""
+A user's basic profile information
+"""
+type UserProfile {
+  userId: ID!
+  name: String
+  age: Int
+  gender: String
+  height: Float
+  weight: Float
+  createdAt: String
+  updatedAt: String
+}
+
+"""
+Records a user's response to a quiz question
+"""
+type QuizResponse {
+  userId: ID!
+  questionId: String!
+  questionText: String
+  responseData: AWSJSON
+  stepNumber: Int
+  createdAt: String
+  updatedAt: String
+}
+
+"""
+Input for creating or updating a user profile
+"""
+input UserProfileInput {
+  userId: ID!
+  name: String
+  age: Int
+  gender: String
+  height: Float
+  weight: Float
+}
+
+"""
+Input for saving a quiz response
+"""
+input QuizResponseInput {
+  userId: ID!
+  questionId: String!
+  questionText: String
+  responseData: AWSJSON
+  stepNumber: Int
+}
+
+"""
+Queries for retrieving user data
+"""
+type Query {
+  getUserProfile(userId: ID!): UserProfile
+  getQuizResponses(userId: ID!): [QuizResponse]
+}
+
+"""
+Mutations for creating and updating user data
+"""
+type Mutation {
+  createUserProfile(input: UserProfileInput!): UserProfile
+  saveQuizResponse(input: QuizResponseInput!): QuizResponse
+  updateUserProfile(input: UserProfileInput!): UserProfile
+}
+
+"""
+Schema root configuration
+"""
+schema {
+  query: Query
+  mutation: Mutation
+}

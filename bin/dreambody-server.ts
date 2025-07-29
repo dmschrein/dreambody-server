@@ -1,20 +1,56 @@
 #!/usr/bin/env node
-import * as cdk from 'aws-cdk-lib';
-import { DreambodyServerStack } from '../lib/dreambody-server-stack';
+import * as cdk from "aws-cdk-lib";
+import { DreambodyServerStack } from "../lib/dreambody-server-stack";
 
 const app = new cdk.App();
-new DreambodyServerStack(app, 'DreambodyServerStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
 
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
+// Get stage from context or default to 'dev'
+const stage = app.node.tryGetContext("stage") || "dev";
+console.log(`Deploying to ${stage} environment`);
 
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
+// Get AWS account and region from context or environment variables
+const account = app.node.tryGetContext("account");
+const region = app.node.tryGetContext("region") || "us-west-1";
 
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+console.log(`Using AWS account: ${account || "default"}, region: ${region}`);
+
+// Define stage-specific configurations
+const stageConfigs: Record<string, any> = {
+  dev: {
+    tableSuffix: "Dev",
+    apiName: "DreambodyApi-Dev",
+    removalPolicy: cdk.RemovalPolicy.DESTROY, // Safe to remove resources in dev
+    apiKeyExpiryDays: 365,
+  },
+  staging: {
+    tableSuffix: "Staging",
+    apiName: "DreambodyApi-Staging",
+    removalPolicy: cdk.RemovalPolicy.RETAIN,
+    apiKeyExpiryDays: 90,
+  },
+  prod: {
+    tableSuffix: "Prod",
+    apiName: "DreambodyApi-Prod",
+    removalPolicy: cdk.RemovalPolicy.RETAIN, // Keep resources in production
+    apiKeyExpiryDays: 30,
+  },
+};
+
+const config = stageConfigs[stage] || stageConfigs.dev;
+
+// Create stack with stage-specific name and config
+new DreambodyServerStack(app, `DreambodyServerStack-${stage}`, {
+  env: account
+    ? {
+        account: account,
+        region: region,
+      }
+    : undefined,
+  stage,
+  config,
+  tags: {
+    Environment: stage,
+    Project: "DreamBody",
+    DeployedBy: "CDK",
+  },
 });

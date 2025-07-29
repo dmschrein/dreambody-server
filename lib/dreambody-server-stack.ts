@@ -1,16 +1,30 @@
-import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+// AppSync/DynamoDB stack
+import * as cdk from "aws-cdk-lib";
+import { Construct } from "constructs";
+import { DreambodyApiStack } from "./dreambody-api-stack";
+
+// Extend the StackProps interface to include our custom properties
+interface DreambodyStackProps extends cdk.StackProps {
+  stage?: string;
+  config?: any;
+}
 
 export class DreambodyServerStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props?: DreambodyStackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
+    const stage = props?.stage || "dev";
+    const config = props?.config || {};
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'DreambodyServerQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    // Create the API stack with stage-specific configuration
+    const apiStack = new DreambodyApiStack(this, "ApiStack", {
+      stage,
+      tableSuffix: config.tableSuffix || "",
+      apiName: config.apiName || "DreambodyApi",
+      removalPolicy: config.removalPolicy || cdk.RemovalPolicy.DESTROY,
+      apiKeyExpiryDays: config.apiKeyExpiryDays || 365,
+    });
+
+    // Add any other stacks or resources as needed
   }
 }
