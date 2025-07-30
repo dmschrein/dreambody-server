@@ -443,10 +443,10 @@ function formatResponse(responseData: string | null | undefined): string {
  */
 function extractJsonFromResponse(response: string): any {
   try {
-    // Try to find JSON in the response
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
+    // Attempt to extract valid JSON objects from the response
+    const json = findValidJson(response);
+    if (json) {
+      return json;
     }
 
     // If no JSON found, return empty object
