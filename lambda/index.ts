@@ -257,7 +257,7 @@ async function getExercisePlan(userId: string, planId?: string): Promise<any> {
     // Get a specific plan
     const command = new GetCommand({
       TableName: EXERCISE_PLANS_TABLE,
-      Key: { planId, userId },
+      Key: { userId, planId },
     });
     const response = await docClient.send(command);
     return response.Item;
