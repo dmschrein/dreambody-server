@@ -31,6 +31,59 @@ type QuizResponse {
 }
 
 """
+An AI-generated exercise plan based on user's quiz responses
+"""
+type ExercisePlan {
+  planId: ID!
+  userId: ID!
+  title: String
+  description: String
+  exercises: [Exercise]
+  createdAt: String
+  updatedAt: String
+}
+
+"""
+A single exercise in an exercise plan
+"""
+type Exercise {
+  name: String!
+  description: String
+  sets: Int
+  reps: Int
+  duration: Int
+  notes: String
+}
+
+"""
+An AI-generated diet plan based on user's quiz responses
+"""
+type DietPlan {
+  planId: ID!
+  userId: ID!
+  title: String
+  description: String
+  dailyCalories: Int
+  meals: [Meal]
+  dietaryRestrictions: [String]
+  createdAt: String
+  updatedAt: String
+}
+
+"""
+A meal recommendation in a diet plan
+"""
+type Meal {
+  name: String!
+  description: String
+  calories: Int
+  proteins: Float
+  carbs: Float
+  fats: Float
+  recipe: String
+}
+
+"""
 Input for creating or updating a user profile
 """
 input UserProfileInput {
@@ -54,11 +107,40 @@ input QuizResponseInput {
 }
 
 """
+Input for generating exercise or diet plans
+"""
+input PlanGenerationInput {
+  userId: ID!
+  planType: PlanType!
+  preferences: AWSJSON
+}
+
+"""
+Types of plans that can be generated
+"""
+enum PlanType {
+  EXERCISE
+  DIET
+  BOTH
+}
+
+"""
 Queries for retrieving user data
 """
 type Query {
   getUserProfile(userId: ID!): UserProfile
   getQuizResponses(userId: ID!): [QuizResponse]
+  getExercisePlan(userId: ID!, planId: ID): ExercisePlan
+  getDietPlan(userId: ID!, planId: ID): DietPlan
+  getUserPlans(userId: ID!): UserPlans
+}
+
+"""
+Combined user plans
+"""
+type UserPlans {
+  exercisePlans: [ExercisePlan]
+  dietPlans: [DietPlan]
 }
 
 """
@@ -68,6 +150,15 @@ type Mutation {
   createUserProfile(input: UserProfileInput!): UserProfile
   saveQuizResponse(input: QuizResponseInput!): QuizResponse
   updateUserProfile(input: UserProfileInput!): UserProfile
+  generateUserPlans(input: PlanGenerationInput!): GeneratePlansResult
+}
+
+"""
+Result of generating plans
+"""
+type GeneratePlansResult {
+  exercisePlan: ExercisePlan
+  dietPlan: DietPlan
 }
 
 """

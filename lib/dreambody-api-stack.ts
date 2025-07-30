@@ -6,6 +6,7 @@ import * as path from "path";
 import { Construct } from "constructs";
 import { RemovalPolicy } from "aws-cdk-lib";
 import * as fs from "fs";
+import * as iam from "aws-cdk-lib/aws-iam";
 
 // Define props interface for the API stack
 interface DreambodyApiStackProps extends cdk.NestedStackProps {
@@ -69,16 +70,36 @@ export class DreambodyApiStack extends cdk.NestedStack {
       removalPolicy: removalPolicy,
     });
 
+    // Create new tables for exercise and diet plans
+    const exercisePlansTable = new dynamodb.Table(this, "ExercisePlans", {
+      tableName: `ExercisePlans${tableSuffix}`,
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "planId", type: dynamodb.AttributeType.STRING },
+      removalPolicy: removalPolicy,
+    });
+
+    const dietPlansTable = new dynamodb.Table(this, "DietPlans", {
+      tableName: `DietPlans${tableSuffix}`,
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "planId", type: dynamodb.AttributeType.STRING },
+      removalPolicy: removalPolicy,
+    });
+
     // Create a Lambda function for resolvers
     const resolverFunction = new lambda.Function(this, "ResolverFunction", {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: "dist/index.handler", // Updated to use the TypeScript build output
       code: lambda.Code.fromAsset(path.join(__dirname, "..", "lambda")),
       memorySize: 1024,
-      timeout: cdk.Duration.seconds(10),
+      timeout: cdk.Duration.seconds(30), // Increased timeout for AI operations
       environment: {
         USER_PROFILES_TABLE: this.userProfilesTable.tableName,
         QUIZ_RESPONSES_TABLE: this.quizResponsesTable.tableName,
+        EXERCISE_PLANS_TABLE: exercisePlansTable.tableName,
+        DIET_PLANS_TABLE: dietPlansTable.tableName,
+        BEDROCK_MODEL_ID: "anthropic.claude-3-sonnet-20240229-v1:0",
         STAGE: stage,
       },
     });
@@ -86,6 +107,16 @@ export class DreambodyApiStack extends cdk.NestedStack {
     // Grant the Lambda function read/write access to the tables
     this.userProfilesTable.grantReadWriteData(resolverFunction);
     this.quizResponsesTable.grantReadWriteData(resolverFunction);
+    exercisePlansTable.grantReadWriteData(resolverFunction);
+    dietPlansTable.grantReadWriteData(resolverFunction);
+
+    // Grant the Lambda function permissions to invoke Bedrock models
+    resolverFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["bedrock:InvokeModel"],
+        resources: ["*"], // For simplicity. In production, scope this to specific models
+      })
+    );
 
     // Create a Lambda data source
     const lambdaDataSource = this.api.addLambdaDataSource(

@@ -7,6 +7,10 @@ import {
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { AppSyncResolverEvent } from "aws-lambda";
+import {
+  generateUserPlans,
+  PlanGenerationInput,
+} from "./src/bedrock-plans-generator";
 
 // Initialize DynamoDB client
 const dynamoClient = new DynamoDBClient({});
@@ -15,6 +19,8 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient);
 // Environment variables set in the CDK stack
 const USER_PROFILES_TABLE = process.env.USER_PROFILES_TABLE || "";
 const QUIZ_RESPONSES_TABLE = process.env.QUIZ_RESPONSES_TABLE || "";
+const EXERCISE_PLANS_TABLE = process.env.EXERCISE_PLANS_TABLE || "";
+const DIET_PLANS_TABLE = process.env.DIET_PLANS_TABLE || "";
 
 // Interfaces for our data models
 interface UserProfile {
@@ -77,6 +83,10 @@ interface SaveQuizResponseArgs {
   input: QuizResponseInput;
 }
 
+interface GenerateUserPlansArgs {
+  input: PlanGenerationInput;
+}
+
 /**
  * Main handler function for all AppSync resolvers
  */
@@ -96,6 +106,12 @@ export const handler = async (
         return await getUserProfile(args.userId);
       case "getQuizResponses":
         return await getQuizResponses(args.userId);
+      case "getExercisePlan":
+        return await getExercisePlan(args.userId, args.planId);
+      case "getDietPlan":
+        return await getDietPlan(args.userId, args.planId);
+      case "getUserPlans":
+        return await getUserPlans(args.userId);
 
       // Mutations
       case "createUserProfile":
@@ -104,6 +120,8 @@ export const handler = async (
         return await updateUserProfile(args.input);
       case "saveQuizResponse":
         return await saveQuizResponse(args.input);
+      case "generateUserPlans":
+        return await handleGenerateUserPlans(args.input);
 
       default:
         throw new Error(`Unrecognized field name: ${fieldName}`);
@@ -229,4 +247,99 @@ async function saveQuizResponse(
 
   await docClient.send(command);
   return item;
+}
+
+/**
+ * Gets an exercise plan for a user
+ */
+async function getExercisePlan(userId: string, planId?: string): Promise<any> {
+  if (planId) {
+    // Get a specific plan
+    const command = new GetCommand({
+      TableName: EXERCISE_PLANS_TABLE,
+      Key: { planId, userId },
+    });
+    const response = await docClient.send(command);
+    return response.Item;
+  } else {
+    // Get the latest plan
+    const command = new QueryCommand({
+      TableName: EXERCISE_PLANS_TABLE,
+      KeyConditionExpression: "userId = :userId",
+      ExpressionAttributeValues: {
+        ":userId": userId,
+      },
+      ScanIndexForward: false, // Descending order (newest first)
+      Limit: 1,
+    });
+    const response = await docClient.send(command);
+    return response.Items?.[0] || null;
+  }
+}
+
+/**
+ * Gets a diet plan for a user
+ */
+async function getDietPlan(userId: string, planId?: string): Promise<any> {
+  if (planId) {
+    // Get a specific plan
+    const command = new GetCommand({
+      TableName: DIET_PLANS_TABLE,
+      Key: { planId, userId },
+    });
+    const response = await docClient.send(command);
+    return response.Item;
+  } else {
+    // Get the latest plan
+    const command = new QueryCommand({
+      TableName: DIET_PLANS_TABLE,
+      KeyConditionExpression: "userId = :userId",
+      ExpressionAttributeValues: {
+        ":userId": userId,
+      },
+      ScanIndexForward: false, // Descending order (newest first)
+      Limit: 1,
+    });
+    const response = await docClient.send(command);
+    return response.Items?.[0] || null;
+  }
+}
+
+/**
+ * Gets all plans for a user
+ */
+async function getUserPlans(userId: string): Promise<any> {
+  // Get exercise plans
+  const exercisePlansCommand = new QueryCommand({
+    TableName: EXERCISE_PLANS_TABLE,
+    KeyConditionExpression: "userId = :userId",
+    ExpressionAttributeValues: {
+      ":userId": userId,
+    },
+  });
+  const exercisePlansResponse = await docClient.send(exercisePlansCommand);
+
+  // Get diet plans
+  const dietPlansCommand = new QueryCommand({
+    TableName: DIET_PLANS_TABLE,
+    KeyConditionExpression: "userId = :userId",
+    ExpressionAttributeValues: {
+      ":userId": userId,
+    },
+  });
+  const dietPlansResponse = await docClient.send(dietPlansCommand);
+
+  return {
+    exercisePlans: exercisePlansResponse.Items || [],
+    dietPlans: dietPlansResponse.Items || [],
+  };
+}
+
+/**
+ * Generates user plans using Bedrock
+ */
+async function handleGenerateUserPlans(
+  input: PlanGenerationInput
+): Promise<any> {
+  return await generateUserPlans(input);
 }
