@@ -449,11 +449,11 @@ function extractJsonFromResponse(response: string): any {
       return json;
     }
 
-    // If no JSON found, return empty object
+    // If no JSON found, throw an error
     console.warn("No JSON found in response");
-    return {};
+    throw new Error("No JSON found in response");
   } catch (error) {
     console.error("Error extracting JSON from response:", error);
-    return {};
+    throw new Error("Error extracting JSON from response: " + error.message);
   }
 }
