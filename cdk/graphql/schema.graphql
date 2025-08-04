@@ -107,12 +107,12 @@ input QuizResponseInput {
 }
 
 """
-Input for generating exercise or diet plans
+Input for generating plans using Bedrock prompt flows
 """
-input PlanGenerationInput {
+input FlowPlanGenerationInput {
   userId: ID!
-  planType: PlanType!
-  preferences: AWSJSON
+  connectionId: String!
+  content: AWSJSON!
 }
 
 """
@@ -150,15 +150,16 @@ type Mutation {
   createUserProfile(input: UserProfileInput!): UserProfile
   saveQuizResponse(input: QuizResponseInput!): QuizResponse
   updateUserProfile(input: UserProfileInput!): UserProfile
-  generateUserPlans(input: PlanGenerationInput!): GeneratePlansResult
+  generateUserPlansWithFlow(input: FlowPlanGenerationInput!): FlowRequestResult
 }
 
 """
-Result of generating plans
+Result of a flow request
 """
-type GeneratePlansResult {
-  exercisePlan: ExercisePlan
-  dietPlan: DietPlan
+type FlowRequestResult {
+  success: Boolean!
+  message: String
+  connectionId: String
 }
 
 """

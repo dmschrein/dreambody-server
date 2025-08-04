@@ -2,32 +2,48 @@
   "name": "dreambody-server",
   "version": "0.1.0",
   "bin": {
-    "dreambody-server": "bin/dreambody-server.js"
+    "dreambody-server": "cdk/bin/dreambody-server.js"
   },
   "scripts": {
-    "lint:schema": "graphql-schema-linter --rules recommended graphql/schema.graphql",
+    "lint:schema": "graphql-schema-linter --rules recommended cdk/graphql/schema.graphql",
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "jest",
-    "cdk": "cdk"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:bedrock": "vitest run cdk/lambda/bedrock-flow/__tests__/bedrock-flow-integration.test.ts",
+    "test:event-processor": "vitest run cdk/lambda/event-processor/__tests__/event-processor.test.ts",
+    "cdk": "cdk",
+    "verify": "npm run lint:schema && tsc --noEmit && cd cdk && tsc --noEmit",
+    "preDeploy": "npm run verify && cd cdk && npm run build && npm run synth"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.152",
-    "@types/jest": "^29.5.14",
-    "@types/node": "22.7.9",
+    "@types/node": "^24.1.0",
     "aws-cdk": "2.1021.0",
+    "aws-sdk-client-mock": "^4.1.0",
     "graphql-schema-linter": "^3.0.1",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
-    "typescript": "~5.6.3"
+    "typescript": "^5.9.2",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4",
+    "vitest-tsconfig-paths": "3.4.1"
   },
   "dependencies": {
     "@aws-cdk/aws-appsync-alpha": "^2.59.0-alpha.0",
+    "@aws-lambda-powertools/logger": "^2.24.1",
+    "@aws-lambda-powertools/metrics": "^2.24.1",
+    "@aws-lambda-powertools/parameters": "^2.24.1",
+    "@aws-lambda-powertools/tracer": "^2.24.1",
+    "@aws-sdk/client-bedrock-agent-runtime": "^3.857.0",
     "@aws-sdk/client-dynamodb": "^3.848.0",
+    "@aws-sdk/client-eventbridge": "^3.857.0",
+    "@aws-sdk/client-ssm": "^3.859.0",
     "@aws-sdk/lib-dynamodb": "^3.850.0",
+    "@middy/core": "^6.4.1",
     "aws-cdk-lib": "^2.206.0",
     "aws-sdk": "^2.1692.0",
-    "constructs": "^10.4.2"
+    "constructs": "^10.4.2",
+    "uuid": "^11.1.0"
   }
 }

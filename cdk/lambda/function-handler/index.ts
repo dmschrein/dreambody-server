@@ -7,10 +7,6 @@ import {
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { AppSyncResolverEvent } from "aws-lambda";
-import {
-  generateUserPlans,
-  PlanGenerationInput,
-} from "./src/bedrock-plans-generator";
 
 // Initialize DynamoDB client
 const dynamoClient = new DynamoDBClient({});
@@ -83,10 +79,6 @@ interface SaveQuizResponseArgs {
   input: QuizResponseInput;
 }
 
-interface GenerateUserPlansArgs {
-  input: PlanGenerationInput;
-}
-
 /**
  * Main handler function for all AppSync resolvers
  */
@@ -120,8 +112,6 @@ export const handler = async (
         return await updateUserProfile(args.input);
       case "saveQuizResponse":
         return await saveQuizResponse(args.input);
-      case "generateUserPlans":
-        return await handleGenerateUserPlans(args.input);
 
       default:
         throw new Error(`Unrecognized field name: ${fieldName}`);
@@ -333,13 +323,4 @@ async function getUserPlans(userId: string): Promise<any> {
     exercisePlans: exercisePlansResponse.Items || [],
     dietPlans: dietPlansResponse.Items || [],
   };
-}
-
-/**
- * Generates user plans using Bedrock
- */
-async function handleGenerateUserPlans(
-  input: PlanGenerationInput
-): Promise<any> {
-  return await generateUserPlans(input);
 }

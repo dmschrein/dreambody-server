@@ -7,6 +7,9 @@ import { Construct } from "constructs";
 import { RemovalPolicy } from "aws-cdk-lib";
 import * as fs from "fs";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as events from "aws-cdk-lib/aws-events";
+import * as targets from "aws-cdk-lib/aws-events-targets";
+import * as ssm from "aws-cdk-lib/aws-ssm";
 
 // Define props interface for the API stack
 interface DreambodyApiStackProps extends cdk.NestedStackProps {
@@ -15,6 +18,7 @@ interface DreambodyApiStackProps extends cdk.NestedStackProps {
   apiName?: string;
   removalPolicy?: RemovalPolicy;
   apiKeyExpiryDays?: number;
+  eventBus?: events.EventBus; // Add eventBus as an optional prop
 }
 
 export class DreambodyApiStack extends cdk.NestedStack {
@@ -32,10 +36,17 @@ export class DreambodyApiStack extends cdk.NestedStack {
     const removalPolicy = props?.removalPolicy || RemovalPolicy.DESTROY;
     const apiKeyExpiryDays = props?.apiKeyExpiryDays || 365;
 
+    // Use eventBus from props or create a new one
+    const eventBus =
+      props?.eventBus ||
+      new events.EventBus(this, "DreambodyEventBus", {
+        eventBusName: `DreambodyEventBus-${stage}`,
+      });
+
     // Create AppSync API
     this.api = new appsync.GraphqlApi(this, "DreambodyApi", {
       name: apiName,
-      schema: appsync.SchemaFile.fromAsset(
+      schema: appsync.Schema.fromAsset(
         path.join(__dirname, "..", "graphql", "schema.graphql")
       ),
       authorizationConfig: {
@@ -89,9 +100,11 @@ export class DreambodyApiStack extends cdk.NestedStack {
 
     // Create a Lambda function for resolvers
     const resolverFunction = new lambda.Function(this, "ResolverFunction", {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: "dist/index.handler", // Updated to use the TypeScript build output
-      code: lambda.Code.fromAsset(path.join(__dirname, "..", "lambda")),
+      runtime: lambda.Runtime.NODEJS_22_X,
+      handler: "lambda/function-handler/index.handler", // Updated path
+      code: lambda.Code.fromAsset(
+        path.join(__dirname, "..", "lambda", "function-handler")
+      ),
       memorySize: 1024,
       timeout: cdk.Duration.seconds(30), // Increased timeout for AI operations
       environment: {
@@ -99,7 +112,6 @@ export class DreambodyApiStack extends cdk.NestedStack {
         QUIZ_RESPONSES_TABLE: this.quizResponsesTable.tableName,
         EXERCISE_PLANS_TABLE: exercisePlansTable.tableName,
         DIET_PLANS_TABLE: dietPlansTable.tableName,
-        BEDROCK_MODEL_ID: "anthropic.claude-3-sonnet-20240229-v1:0",
         STAGE: stage,
       },
     });
@@ -110,54 +122,88 @@ export class DreambodyApiStack extends cdk.NestedStack {
     exercisePlansTable.grantReadWriteData(resolverFunction);
     dietPlansTable.grantReadWriteData(resolverFunction);
 
-    // Grant the Lambda function permissions to invoke Bedrock models
-    resolverFunction.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["bedrock:InvokeModel"],
-        resources: ["*"], // For simplicity. In production, scope this to specific models
-      })
-    );
-
     // Create a Lambda data source
     const lambdaDataSource = this.api.addLambdaDataSource(
       "LambdaDataSource",
       resolverFunction
     );
 
-    // Add resolvers for each Query and Mutation
-    lambdaDataSource.createResolver("GetUserProfileResolver", {
+    // Add resolvers for each Query and Mutation - fixed syntax
+    lambdaDataSource.createResolver({
       typeName: "Query",
       fieldName: "getUserProfile",
-      requestMappingTemplate: appsync.MappingTemplate.lambdaRequest(),
-      responseMappingTemplate: appsync.MappingTemplate.lambdaResult(),
     });
 
-    lambdaDataSource.createResolver("GetQuizResponsesResolver", {
+    lambdaDataSource.createResolver({
       typeName: "Query",
       fieldName: "getQuizResponses",
-      requestMappingTemplate: appsync.MappingTemplate.lambdaRequest(),
-      responseMappingTemplate: appsync.MappingTemplate.lambdaResult(),
     });
 
-    lambdaDataSource.createResolver("CreateUserProfileResolver", {
+    lambdaDataSource.createResolver({
+      typeName: "Query",
+      fieldName: "getExercisePlan",
+    });
+
+    lambdaDataSource.createResolver({
+      typeName: "Query",
+      fieldName: "getDietPlan",
+    });
+
+    lambdaDataSource.createResolver({
+      typeName: "Query",
+      fieldName: "getUserPlans",
+    });
+
+    lambdaDataSource.createResolver({
       typeName: "Mutation",
       fieldName: "createUserProfile",
-      requestMappingTemplate: appsync.MappingTemplate.lambdaRequest(),
-      responseMappingTemplate: appsync.MappingTemplate.lambdaResult(),
     });
 
-    lambdaDataSource.createResolver("UpdateUserProfileResolver", {
+    lambdaDataSource.createResolver({
       typeName: "Mutation",
       fieldName: "updateUserProfile",
-      requestMappingTemplate: appsync.MappingTemplate.lambdaRequest(),
-      responseMappingTemplate: appsync.MappingTemplate.lambdaResult(),
     });
 
-    lambdaDataSource.createResolver("SaveQuizResponseResolver", {
+    lambdaDataSource.createResolver({
       typeName: "Mutation",
       fieldName: "saveQuizResponse",
-      requestMappingTemplate: appsync.MappingTemplate.lambdaRequest(),
-      responseMappingTemplate: appsync.MappingTemplate.lambdaResult(),
+    });
+
+    // Create a Lambda function to process EventBridge events
+    const eventProcessorFunction = new lambda.Function(
+      this,
+      "EventProcessorFunction",
+      {
+        runtime: lambda.Runtime.NODEJS_22_X,
+        handler: "lambda/event-processor/event-processor.handler", // Updated path
+        code: lambda.Code.fromAsset(
+          path.join(__dirname, "..", "lambda", "event-processor")
+        ),
+        memorySize: 1024,
+        timeout: cdk.Duration.seconds(30),
+        environment: {
+          USER_PROFILES_TABLE: this.userProfilesTable.tableName,
+          QUIZ_RESPONSES_TABLE: this.quizResponsesTable.tableName,
+          EXERCISE_PLANS_TABLE: exercisePlansTable.tableName,
+          DIET_PLANS_TABLE: dietPlansTable.tableName,
+        },
+      }
+    );
+
+    // Grant DynamoDB permissions
+    this.userProfilesTable.grantReadWriteData(eventProcessorFunction);
+    this.quizResponsesTable.grantReadWriteData(eventProcessorFunction);
+    exercisePlansTable.grantReadWriteData(eventProcessorFunction);
+    dietPlansTable.grantReadWriteData(eventProcessorFunction);
+
+    // Add EventBridge rule to trigger the processor
+    new events.Rule(this, "BedrockResponseRule", {
+      eventBus,
+      eventPattern: {
+        source: ["promptEventHandler"],
+        detailType: ["bedrockResponded"],
+      },
+      targets: [new targets.LambdaFunction(eventProcessorFunction)],
     });
 
     // Output the API URL and API Key
