@@ -1,127 +1,39 @@
 # DreamBody Server
 
-This project is a serverless backend for the DreamBody application, built using AWS AppSync, Lambda, and DynamoDB.
+Backend server for the DreamBody application using AWS CDK, AppSync, Lambda, and Bedrock.
 
-## Architecture
+## Testing
 
-- **GraphQL API**: AWS AppSync for handling GraphQL queries and mutations
-- **Database**: Amazon DynamoDB tables for storing user profiles and quiz responses
-- **Lambda Functions**: For resolving GraphQL operations
+This project uses [Vitest](https://vitest.dev/) for unit and integration testing. All Jest dependencies have been removed in favor of Vitest.
 
-## Database Schema
+### Running Tests
 
-### UserProfiles Table
+- Run all tests: `npm test`
+- Run tests in watch mode: `npm run test:watch`
+- Run tests with UI: `npm run test:ui`
 
-- **Partition Key**: `userId` (string)
-- **Attributes**: name, age, gender, height, weight, createdAt, updatedAt
+### Specialized Test Commands
 
-### QuizResponses Table
+- Test Lambda function handler: `npm run test -- cdk/lambda/function-handler/__tests__/index.test.ts`
+- Test Bedrock Flow Lambda: `npm run test -- cdk/lambda/bedrock-flow/__tests__/invoke-dreambody-prompt-flow-v1.test.ts`
+- Test Bedrock Flow integration: `npm run test -- cdk/lambda/bedrock-flow/__tests__/bedrock-flow-integration.test.ts`
+- Test Event Processor: `npm run test -- cdk/lambda/event-processor/__tests__/event-processor.test.ts`
 
-- **Partition Key**: `userId` (string)
-- **Sort Key**: `questionId` (string)
-- **Attributes**: questionText, responseData, stepNumber, createdAt, updatedAt
+### Test Structure
 
-## Getting Started
+- **Unit Tests**: Located in `__tests__` directories adjacent to the code they test
+- **Integration Tests**: Test the complete flow from API request to EventBridge processing
 
-### Prerequisites
+## Deployment
 
-- Node.js (v16+)
-- AWS CDK CLI
-- AWS Account and configured credentials
+First run the pre-deployment checks:
 
-### Installation
-
-1. Clone this repository
-2. Install dependencies:
-
-```bash
-npm install
+```
+npm run preDeploy
 ```
 
-3. Bootstrap CDK in your AWS account (if not done before):
+Then deploy with:
 
-```bash
-npx cdk bootstrap
 ```
-
-### Deployment
-
-1. Synthesize CloudFormation template:
-
-```bash
-npx cdk synth
-```
-
-2. Deploy to AWS:
-
-```bash
-npx cdk deploy
-```
-
-3. The output will include:
-   - GraphQL API URL
-   - API Key
-
-## Development
-
-- GraphQL schema is defined in `graphql/schema.graphql`
-- Lambda resolver code is in `lambda/index.js`
-- AWS resources are defined in `lib/dreambody-api-stack.ts`
-
-## Usage Examples
-
-### Query a User Profile
-
-```graphql
-query GetUserProfile {
-  getUserProfile(userId: "user123") {
-    userId
-    name
-    age
-    gender
-    height
-    weight
-  }
-}
-```
-
-### Create a User Profile
-
-```graphql
-mutation CreateUserProfile {
-  createUserProfile(
-    input: {
-      userId: "user123"
-      name: "John Doe"
-      age: 30
-      gender: "male"
-      height: 175.5
-      weight: 70.2
-    }
-  ) {
-    userId
-    name
-    createdAt
-  }
-}
-```
-
-### Save Quiz Response
-
-```graphql
-mutation SaveQuizResponse {
-  saveQuizResponse(
-    input: {
-      userId: "user123"
-      questionId: "q1"
-      questionText: "What is your fitness goal?"
-      responseData: "{\"option\": \"weight_loss\"}"
-      stepNumber: 1
-    }
-  ) {
-    userId
-    questionId
-    createdAt
-  }
-}
+cdk deploy
 ```

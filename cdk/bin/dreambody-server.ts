@@ -10,7 +10,7 @@ console.log(`Deploying to ${stage} environment`);
 
 // Get AWS account and region from context or environment variables
 const account = app.node.tryGetContext("account");
-const region = app.node.tryGetContext("region") || "us-west-1";
+const region = app.node.tryGetContext("region") || "us-west-2";
 
 console.log(`Using AWS account: ${account || "default"}, region: ${region}`);
 

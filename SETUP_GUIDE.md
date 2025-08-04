@@ -92,18 +92,18 @@ dreambody-server/
 1. Bootstrapped the CDK environment:
 
    ```bash
-   npx cdk bootstrap aws://100484436864/us-west-1 --context account=100484436864 --context region=us-west-1
+   npx cdk bootstrap aws://100484436864/us-west-2 --context account=100484436864 --context region=us-west-2
    ```
 
 2. Synthesized CloudFormation template:
 
    ```bash
-   npx cdk synth --context account=100484436864 --context region=us-west-1
+   npx cdk synth --context account=100484436864 --context region=us-west-2
    ```
 
 3. Deployed the stack:
    ```bash
-   npx cdk deploy --context account=100484436864 --context region=us-west-1
+   npx cdk deploy --context account=100484436864 --context region=us-west-2
    ```
 
 ## 7. Accessing the Deployed API
@@ -146,13 +146,13 @@ Key information:
 
    ```bash
    # Development (default)
-   npx cdk deploy --context account=100484436864 --context region=us-west-1
+   npx cdk deploy --context account=100484436864 --context region=us-west-2
 
    # Staging
-   npx cdk deploy --context stage=staging --context account=100484436864 --context region=us-west-1
+   npx cdk deploy --context stage=staging --context account=100484436864 --context region=us-west-2
 
    # Production
-   npx cdk deploy --context stage=prod --context account=100484436864 --context region=us-west-1
+   npx cdk deploy --context stage=prod --context account=100484436864 --context region=us-west-2
    ```
 
 ## 9. Next Steps
