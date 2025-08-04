@@ -3,13 +3,13 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as events from "aws-cdk-lib/aws-events";
-import * as appsync from "@aws-cdk/aws-appsync-alpha";
+import { GraphqlApi, SchemaFile } from "@aws-cdk/aws-appsync-alpha";
 import * as path from "path";
 import { Construct } from "constructs";
 
 interface BedrockFlowStackProps extends cdk.NestedStackProps {
   stage: string;
-  api: appsync.GraphqlApi;
+  api: GraphqlApi;
   eventBus: events.EventBus;
 }
 
@@ -106,7 +106,7 @@ export class BedrockFlowStack extends cdk.NestedStack {
     );
 
     // Create resolver for the mutation
-    flowInvokerDataSource.createResolver({
+    flowInvokerDataSource.createResolver("GenerateUserPlansWithFlowResolver", {
       typeName: "Mutation",
       fieldName: "generateUserPlansWithFlow",
     });

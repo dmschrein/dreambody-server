@@ -1,5 +1,10 @@
 import * as cdk from "aws-cdk-lib";
-import * as appsync from "@aws-cdk/aws-appsync-alpha";
+import {
+  GraphqlApi,
+  SchemaFile,
+  AuthorizationType,
+  FieldLogLevel,
+} from "@aws-cdk/aws-appsync-alpha";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as path from "path";
@@ -22,7 +27,7 @@ interface DreambodyApiStackProps extends cdk.NestedStackProps {
 }
 
 export class DreambodyApiStack extends cdk.NestedStack {
-  public readonly api: appsync.GraphqlApi;
+  public readonly api: GraphqlApi;
   public readonly userProfilesTable: dynamodb.Table;
   public readonly quizResponsesTable: dynamodb.Table;
 
@@ -44,14 +49,14 @@ export class DreambodyApiStack extends cdk.NestedStack {
       });
 
     // Create AppSync API
-    this.api = new appsync.GraphqlApi(this, "DreambodyApi", {
+    this.api = new GraphqlApi(this, "DreambodyApi", {
       name: apiName,
-      schema: appsync.Schema.fromAsset(
+      schema: SchemaFile.fromAsset(
         path.join(__dirname, "..", "graphql", "schema.graphql")
       ),
       authorizationConfig: {
         defaultAuthorization: {
-          authorizationType: appsync.AuthorizationType.API_KEY,
+          authorizationType: AuthorizationType.API_KEY,
           apiKeyConfig: {
             name: `${apiName}Key`,
             description: `API Key for ${apiName}`,
@@ -60,7 +65,7 @@ export class DreambodyApiStack extends cdk.NestedStack {
         },
       },
       logConfig: {
-        fieldLogLevel: appsync.FieldLogLevel.ALL,
+        fieldLogLevel: FieldLogLevel.ALL,
       },
       xrayEnabled: true,
     });
@@ -128,43 +133,43 @@ export class DreambodyApiStack extends cdk.NestedStack {
       resolverFunction
     );
 
-    // Add resolvers for each Query and Mutation - fixed syntax
-    lambdaDataSource.createResolver({
+    // Add resolvers for each Query and Mutation with the proper two-argument syntax
+    lambdaDataSource.createResolver("GetUserProfileResolver", {
       typeName: "Query",
       fieldName: "getUserProfile",
     });
 
-    lambdaDataSource.createResolver({
+    lambdaDataSource.createResolver("GetQuizResponsesResolver", {
       typeName: "Query",
       fieldName: "getQuizResponses",
     });
 
-    lambdaDataSource.createResolver({
+    lambdaDataSource.createResolver("GetExercisePlanResolver", {
       typeName: "Query",
       fieldName: "getExercisePlan",
     });
 
-    lambdaDataSource.createResolver({
+    lambdaDataSource.createResolver("GetDietPlanResolver", {
       typeName: "Query",
       fieldName: "getDietPlan",
     });
 
-    lambdaDataSource.createResolver({
+    lambdaDataSource.createResolver("GetUserPlansResolver", {
       typeName: "Query",
       fieldName: "getUserPlans",
     });
 
-    lambdaDataSource.createResolver({
+    lambdaDataSource.createResolver("CreateUserProfileResolver", {
       typeName: "Mutation",
       fieldName: "createUserProfile",
     });
 
-    lambdaDataSource.createResolver({
+    lambdaDataSource.createResolver("UpdateUserProfileResolver", {
       typeName: "Mutation",
       fieldName: "updateUserProfile",
     });
 
-    lambdaDataSource.createResolver({
+    lambdaDataSource.createResolver("SaveQuizResponseResolver", {
       typeName: "Mutation",
       fieldName: "saveQuizResponse",
     });

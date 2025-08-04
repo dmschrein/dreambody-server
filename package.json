@@ -8,11 +8,12 @@
     "lint:schema": "graphql-schema-linter --rules recommended cdk/graphql/schema.graphql",
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "vitest run",
+    "test": "vitest run cdk/lambda/function-handler/__tests__/ cdk/lambda/bedrock-flow/__tests__/ cdk/lambda/event-processor/__tests__/",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:bedrock": "vitest run cdk/lambda/bedrock-flow/__tests__/bedrock-flow-integration.test.ts",
     "test:event-processor": "vitest run cdk/lambda/event-processor/__tests__/event-processor.test.ts",
+    "test:infrastructure": "vitest run cdk/lib/__tests__/",
     "cdk": "cdk",
     "verify": "npm run lint:schema && tsc --noEmit && cd cdk && tsc --noEmit",
     "preDeploy": "npm run verify && cd cdk && npm run build && npm run synth"
