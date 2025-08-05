@@ -1,8 +1,14 @@
 import { defineConfig } from "vitest/config";
-import tsconfigPaths from "vitest-tsconfig-paths";
+import { resolve } from "path";
 
 export default defineConfig({
-  plugins: [tsconfigPaths()],
+  resolve: {
+    alias: {
+      // Add your path aliases here if needed
+      "@": resolve(__dirname, "./"),
+      "~": resolve(__dirname, "./"),
+    },
+  },
   test: {
     environment: "node",
     include: ["**/__tests__/**/*.test.{ts,js}", "**/?(*.)+(test|spec).{ts,js}"],

@@ -1,12 +1,13 @@
 {
   "name": "dreambody-server",
   "version": "0.1.0",
+  "type": "module",
   "bin": {
     "dreambody-server": "cdk/bin/dreambody-server.js"
   },
   "scripts": {
     "lint:schema": "graphql-schema-linter --rules recommended cdk/graphql/schema.graphql",
-    "build": "tsc",
+    "build": "tsc -p cdk/tsconfig.json",
     "watch": "tsc -w",
     "test": "vitest run cdk/lambda/function-handler/__tests__/ cdk/lambda/bedrock-flow/__tests__/ cdk/lambda/event-processor/__tests__/",
     "test:watch": "vitest",
@@ -16,11 +17,14 @@
     "test:infrastructure": "vitest run cdk/lib/__tests__/",
     "cdk": "cdk",
     "verify": "npm run lint:schema && tsc --noEmit && cd cdk && tsc --noEmit",
-    "preDeploy": "npm run verify && cd cdk && npm run build && npm run synth"
+    "preDeploy": "npm run verify && cd cdk && npm run build && npm run synth",
+    "test:api": "node scripts/e2e/test-client.js",
+    "pre-pr": "chmod +x scripts/pre-pr-check.sh && ./scripts/pre-pr-check.sh",
+    "fix-build": "chmod +x scripts/fix-build-issues.sh && ./scripts/fix-build-issues.sh"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.152",
-    "@types/node": "^24.1.0",
+    "@types/node": "^24.2.0",
     "aws-cdk": "2.1021.0",
     "aws-sdk-client-mock": "^4.1.0",
     "graphql-schema-linter": "^3.0.1",
@@ -45,6 +49,8 @@
     "aws-cdk-lib": "^2.206.0",
     "aws-sdk": "^2.1692.0",
     "constructs": "^10.4.2",
+    "graphql": "^16.11.0",
+    "graphql-request": "^7.2.0",
     "uuid": "^11.1.0"
   }
 }

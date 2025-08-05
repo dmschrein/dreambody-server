@@ -27,7 +27,7 @@ export class BedrockFlowStack extends cdk.NestedStack {
       "BedrockFlowInvokerFunction",
       {
         runtime: lambda.Runtime.NODEJS_22_X,
-        handler: "lambda/bedrock-flow/invoke-dreambody-prompt-flow-v1.handler",
+        handler: "invoke-dreambody-prompt-flow-v1.handler",
         code: lambda.Code.fromAsset(
           path.join(__dirname, "..", "lambda", "bedrock-flow")
         ),
