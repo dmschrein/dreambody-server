@@ -18,7 +18,9 @@
     "cdk": "cdk",
     "verify": "npm run lint:schema && tsc --noEmit && cd cdk && tsc --noEmit",
     "preDeploy": "npm run verify && cd cdk && npm run build && npm run synth",
-    "test:api": "node scripts/e2e/test-client.js"
+    "test:api": "node scripts/e2e/test-client.js",
+    "pre-pr": "chmod +x scripts/pre-pr-check.sh && ./scripts/pre-pr-check.sh",
+    "fix-build": "chmod +x scripts/fix-build-issues.sh && ./scripts/fix-build-issues.sh"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.152",
