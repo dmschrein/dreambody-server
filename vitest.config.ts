@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config";
+// @ts-ignore - Missing types
 import tsconfigPaths from "vitest-tsconfig-paths";
 
 export default defineConfig({

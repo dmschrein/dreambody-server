@@ -7,7 +7,7 @@
   },
   "scripts": {
     "lint:schema": "graphql-schema-linter --rules recommended cdk/graphql/schema.graphql",
-    "build": "tsc",
+    "build": "tsc -p cdk/tsconfig.json",
     "watch": "tsc -w",
     "test": "vitest run cdk/lambda/function-handler/__tests__/ cdk/lambda/bedrock-flow/__tests__/ cdk/lambda/event-processor/__tests__/",
     "test:watch": "vitest",
