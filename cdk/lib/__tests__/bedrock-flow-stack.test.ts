@@ -42,7 +42,7 @@ describe("BedrockFlowStack", () => {
 
   test("Lambda function is created", () => {
     template.hasResourceProperties("AWS::Lambda::Function", {
-      Handler: "lambda/bedrock-flow/invoke-dreambody-prompt-flow-v1.handler",
+      Handler: "index.handler",
       Runtime: "nodejs22.x",
     });
   });
