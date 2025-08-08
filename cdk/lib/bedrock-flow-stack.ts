@@ -4,6 +4,7 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as events from "aws-cdk-lib/aws-events";
 import { GraphqlApi, SchemaFile } from "@aws-cdk/aws-appsync-alpha";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as path from "path";
 import { Construct } from "constructs";
 
@@ -22,15 +23,13 @@ export class BedrockFlowStack extends cdk.NestedStack {
     const { stage, api, eventBus } = props;
 
     // Create the Flow Invoker Lambda function
-    this.flowInvokerFunction = new lambda.Function(
+    this.flowInvokerFunction = new NodejsFunction(
       this,
       "BedrockFlowInvokerFunction",
       {
         runtime: lambda.Runtime.NODEJS_22_X,
-        handler: "index.handler",
-        code: lambda.Code.fromAsset(
-          path.join(__dirname, "..", "lambda", "bedrock-flow")
-        ),
+        entry: path.join(__dirname, "..", "lambda", "bedrock-flow", "index.ts"),
+        handler: "handler",
         memorySize: 1024,
         timeout: cdk.Duration.seconds(60),
         environment: {

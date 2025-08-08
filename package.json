@@ -6,7 +6,7 @@
     "dreambody-server": "cdk/bin/dreambody-server.js"
   },
   "scripts": {
-    "lint:schema": "graphql-schema-linter --rules recommended cdk/graphql/schema.graphql",
+    "lint:schema": "graphql-schema-linter --rules recommended graphql/schema.graphql",
     "build": "tsc -p cdk/tsconfig.json",
     "watch": "tsc -w",
     "test": "vitest run cdk/lambda/function-handler/__tests__/ cdk/lambda/bedrock-flow/__tests__/ cdk/lambda/event-processor/__tests__/",
