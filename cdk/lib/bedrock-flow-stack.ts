@@ -42,6 +42,10 @@ export class BedrockFlowStack extends cdk.NestedStack {
           minify: true,
           sourceMap: true,
           target: "node22",
+          esbuildArgs: {
+            "--banner:js":
+              'import { createRequire } from "module"; const require = createRequire(import.meta.url);',
+          },
         },
       }
     );
