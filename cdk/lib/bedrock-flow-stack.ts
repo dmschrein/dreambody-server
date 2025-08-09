@@ -76,18 +76,21 @@ export class BedrockFlowStack extends cdk.NestedStack {
       description: "Bedrock flow end node output name",
     });
 
-    // Grant SSM permissions
+    // Allow GetParameter on your params
     this.flowInvokerFunction.addToRolePolicy(
       new iam.PolicyStatement({
-        actions: [
-          "ssm:GetParameter",
-          "ssm:GetParameters",
-          "ssm:GetParametersByPath",
-        ],
+        actions: ["ssm:GetParameter"],
         resources: [
-          `arn:aws:ssm:${this.region}:${this.account}:parameter${parameterPrefix}`,
           `arn:aws:ssm:${this.region}:${this.account}:parameter${parameterPrefix}/*`,
         ],
+      })
+    );
+
+    // GetParameters must be wildcard
+    this.flowInvokerFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["ssm:GetParameters"],
+        resources: ["*"],
       })
     );
 
