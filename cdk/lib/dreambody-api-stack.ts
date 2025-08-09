@@ -7,7 +7,7 @@ import {
 } from "@aws-cdk/aws-appsync-alpha";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import { NodejsFunction, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as path from "path";
 import { Construct } from "constructs";
 import { RemovalPolicy } from "aws-cdk-lib";
@@ -124,6 +124,13 @@ export class DreambodyApiStack extends cdk.NestedStack {
         EXERCISE_PLANS_TABLE: exercisePlansTable.tableName,
         DIET_PLANS_TABLE: dietPlansTable.tableName,
         STAGE: stage,
+      },
+      bundling: {
+        externalModules: ["aws-sdk"],
+        format: OutputFormat.ESM,
+        minify: true,
+        sourceMap: true,
+        target: "node22",
       },
     });
 
