@@ -4,7 +4,7 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as events from "aws-cdk-lib/aws-events";
 import { GraphqlApi, SchemaFile } from "@aws-cdk/aws-appsync-alpha";
-import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import { NodejsFunction, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as path from "path";
 import { Construct } from "constructs";
 
@@ -35,6 +35,13 @@ export class BedrockFlowStack extends cdk.NestedStack {
         environment: {
           eventBusName: eventBus.eventBusName,
           LOG_LEVEL: "DEBUG",
+        },
+        bundling: {
+          externalModules: ["aws-sdk"],
+          format: OutputFormat.ESM,
+          minify: true,
+          sourceMap: true,
+          target: "node22",
         },
       }
     );
