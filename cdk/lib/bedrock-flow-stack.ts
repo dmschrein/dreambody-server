@@ -35,6 +35,7 @@ export class BedrockFlowStack extends cdk.NestedStack {
         environment: {
           eventBusName: eventBus.eventBusName,
           LOG_LEVEL: "DEBUG",
+          STAGE: stage,
         },
         bundling: {
           externalModules: ["aws-sdk"],
@@ -78,8 +79,13 @@ export class BedrockFlowStack extends cdk.NestedStack {
     // Grant SSM permissions
     this.flowInvokerFunction.addToRolePolicy(
       new iam.PolicyStatement({
-        actions: ["ssm:GetParameter", "ssm:GetParameters"],
+        actions: [
+          "ssm:GetParameter",
+          "ssm:GetParameters",
+          "ssm:GetParametersByPath",
+        ],
         resources: [
+          `arn:aws:ssm:${this.region}:${this.account}:parameter${parameterPrefix}`,
           `arn:aws:ssm:${this.region}:${this.account}:parameter${parameterPrefix}/*`,
         ],
       })
