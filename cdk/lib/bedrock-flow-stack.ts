@@ -38,14 +38,10 @@ export class BedrockFlowStack extends cdk.NestedStack {
         },
         bundling: {
           externalModules: ["aws-sdk"],
-          format: OutputFormat.ESM,
+          format: OutputFormat.CJS,
           minify: true,
           sourceMap: true,
           target: "node22",
-          esbuildArgs: {
-            "--banner:js":
-              'import { createRequire } from "module"; const require = createRequire(import.meta.url);',
-          },
         },
       }
     );
