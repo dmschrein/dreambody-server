@@ -211,14 +211,10 @@ export class DreambodyApiStack extends cdk.NestedStack {
         },
         bundling: {
           externalModules: ["aws-sdk"], // keep v2 external; bundle v3 + smithy
-          format: OutputFormat.ESM,
+          format: OutputFormat.CJS,
           target: "node22",
           minify: true,
           sourceMap: true,
-          esbuildArgs: {
-            "--banner:js":
-              'import { createRequire } from "module"; const require = createRequire(import.meta.url);',
-          },
         },
       }
     );
