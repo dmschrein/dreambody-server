@@ -29,11 +29,12 @@ export const functionHandler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   // Get parameters from SSM
+  const prefix = process.env.PARAMETER_PREFIX!;
   const parameterProps = {
-    "/dreambody-server/dreambodyV1/flowIdentifier": {},
-    "/dreambody-server/dreambodyV1/flowAliasIdentifier": {},
-    "/dreambody-server/dreambodyV1/startNodeName": {},
-    "/dreambody-server/dreambodyV1/endNodeOutputName": {},
+    [`${prefix}/flowIdentifier`]: {},
+    [`${prefix}/flowAliasIdentifier`]: {},
+    [`${prefix}/startNodeName`]: {},
+    [`${prefix}/endNodeOutputName`]: {},
   };
 
   const { _errors: paramErrors, ...parameters } = await getParametersByName(
