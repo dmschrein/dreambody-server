@@ -7,6 +7,7 @@ import {
 } from "@aws-cdk/aws-appsync-alpha";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as path from "path";
 import { Construct } from "constructs";
 import { RemovalPolicy } from "aws-cdk-lib";
@@ -15,6 +16,7 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as events from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
 import * as ssm from "aws-cdk-lib/aws-ssm";
+import * as appsync from "@aws-cdk/aws-appsync-alpha";
 
 // Define props interface for the API stack
 interface DreambodyApiStackProps extends cdk.NestedStackProps {
@@ -51,8 +53,8 @@ export class DreambodyApiStack extends cdk.NestedStack {
     // Create AppSync API
     this.api = new GraphqlApi(this, "DreambodyApi", {
       name: apiName,
-      schema: SchemaFile.fromAsset(
-        path.join(__dirname, "..", "graphql", "schema.graphql")
+      schema: appsync.SchemaFile.fromAsset(
+        path.join(__dirname, "..", "..", "graphql", "schema.graphql")
       ),
       authorizationConfig: {
         defaultAuthorization: {
@@ -104,12 +106,16 @@ export class DreambodyApiStack extends cdk.NestedStack {
     });
 
     // Create a Lambda function for resolvers
-    const resolverFunction = new lambda.Function(this, "ResolverFunction", {
+    const resolverFunction = new NodejsFunction(this, "ResolverFunction", {
       runtime: lambda.Runtime.NODEJS_22_X,
-      handler: "lambda/function-handler/index.handler", // Updated path
-      code: lambda.Code.fromAsset(
-        path.join(__dirname, "..", "lambda", "function-handler")
+      entry: path.join(
+        __dirname,
+        "..",
+        "lambda",
+        "function-handler",
+        "index.ts"
       ),
+      handler: "handler",
       memorySize: 1024,
       timeout: cdk.Duration.seconds(30), // Increased timeout for AI operations
       environment: {
@@ -175,15 +181,19 @@ export class DreambodyApiStack extends cdk.NestedStack {
     });
 
     // Create a Lambda function to process EventBridge events
-    const eventProcessorFunction = new lambda.Function(
+    const eventProcessorFunction = new NodejsFunction(
       this,
       "EventProcessorFunction",
       {
         runtime: lambda.Runtime.NODEJS_22_X,
-        handler: "lambda/event-processor/event-processor.handler", // Updated path
-        code: lambda.Code.fromAsset(
-          path.join(__dirname, "..", "lambda", "event-processor")
+        entry: path.join(
+          __dirname,
+          "..",
+          "lambda",
+          "event-processor",
+          "event-processor.ts"
         ),
+        handler: "handler",
         memorySize: 1024,
         timeout: cdk.Duration.seconds(30),
         environment: {
